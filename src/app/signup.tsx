@@ -2,35 +2,30 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { auth } from '../firebaseConfig'; // Assuming you've exported auth
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Link } from 'expo-router';
-import { router } from 'expo-router';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 
-const Login = () => {
+const SignUp = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-
-    const handleLogin = () => {
-        router.navigate('/tabs');
-    }
-    /*const handleLogin = async (email:string, password:string) => {
+    const handleSignUp = async (email:string, password:string) => {
         try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
-          console.log('User signed in:');
-          router.navigate('/tabs');
+          console.log('User signed up:');
+          // ... (navigate to a different screen, etc.)
         } catch (error) {
-          console.error('Error signing in:', error);
+          console.error('Error signing up:', error);
         }
       };
-    */
+      
+      
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
-                <Text style={styles.title}>Login</Text>
+                <Text style={styles.title}>Sign Up</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="Email"
@@ -49,19 +44,15 @@ const Login = () => {
                 />
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => handleLogin(email, password)}
+                    onPress={() => handleSignUp(email, password)}
                 >
-                    <Text style={styles.buttonText}>Login</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.button}
-                >
-                    <Link href="/signup">Kayıt ol</Link>
+                    <Text style={styles.buttonText}>Sign Up</Text>
                 </TouchableOpacity>
             </View>
         </TouchableWithoutFeedback>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -97,4 +88,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Login;
+export default SignUp;
