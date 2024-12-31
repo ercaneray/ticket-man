@@ -19,46 +19,60 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-        clientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
-        iosClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        webClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
         androidClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
+        iosClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
+        redirectUri: "https://auth.expo.io/@eryrcn/ticket-man",
+        responseType: "id_token",
+        scopes: ['openid', 'profile', 'email']
     });
 
     useEffect(() => {
         if (response?.type === 'success') {
             const { id_token } = response.params;
-            const credential = GoogleAuthProvider.credential(id_token);
+            console.log("Auth response:", id_token);
+            
+            const credential = GoogleAuthProvider.credential(
+                id_token
+            );
+            
             signInWithCredential(auth, credential)
                 .then(async (result) => {
+                    console.log("Firebase auth successful");
                     const user = result.user;
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    
-                    if (!userDoc.exists()) {
-                        await setDoc(doc(db, "users", user.uid), {
-                            email: user.email,
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+
+                        if (!userDoc.exists()) {
+                            await setDoc(doc(db, "users", user.uid), {
+                                email: user.email,
+                                firstName: user.displayName?.split(' ')[0] || '',
+                                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                                createdAt: new Date().toISOString(),
+                            });
+                        }
+
+                        const userData = userDoc.exists() ? userDoc.data() : {
                             firstName: user.displayName?.split(' ')[0] || '',
                             lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                            createdAt: new Date().toISOString(),
+                        };
+
+                        login({
+                            id: user.uid,
+                            email: user.email || '',
+                            ...userData
                         });
+
+                        router.push('/tabs/home');
+                    } catch (error) {
+                        console.error("Firestore error:", error);
+                        Alert.alert('Hata', 'Kullanıcı bilgileri kaydedilirken bir hata oluştu.');
                     }
-
-                    const userData = userDoc.exists() ? userDoc.data() : {
-                        firstName: user.displayName?.split(' ')[0] || '',
-                        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                    };
-
-                    login({ 
-                        id: user.uid, 
-                        email: user.email || '',
-                        ...userData
-                    });
-                    
-                    router.push('/tabs/home');
                 })
                 .catch((error) => {
-                    console.error('Google login error:', error);
-                    Alert.alert('Hata', 'Google ile giriş yapılırken bir hata oluştu.');
+                    console.error("Auth error:", error);
+                    Alert.alert('Hata', 'Giriş yapılamadı');
                 });
         }
     }, [response]);
@@ -77,9 +91,10 @@ const Login = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            await promptAsync();
+            const result = await promptAsync();
+            console.log("Auth result:", result);
         } catch (error) {
-            console.error('Google login error:', error);
+            console.error("Google login error:", error);
             Alert.alert('Hata', 'Google ile giriş yapılırken bir hata oluştu.');
         }
     };
@@ -98,7 +113,7 @@ const Login = () => {
                     onPress={handleGoogleLogin}
                 >
                     <Ionicons name="logo-google" size={20} color="#fff" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Google ile Giriş Yap</Text>
+                    <Text style={styles.buttonText}>Google ile Giriş Yap (Test)</Text>
                 </TouchableOpacity>
 
                 <View style={styles.divider}>
