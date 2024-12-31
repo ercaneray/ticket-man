@@ -1,75 +1,118 @@
 import React, { useState } from 'react';
-import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native';
-import { auth, db } from '../firebaseConfig'; // Assuming you've exported auth
+import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet, Platform, SafeAreaView, Alert } from 'react-native';
+import { auth, db } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchUserData } from '../utils/fetchUserData';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
 const SignUp = () => {
-    const { user, signup } = useAuth();
+    const { signup } = useAuth();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const handleSignUp = async (email: string, password: string) => {
+
+    const handleSignUp = async () => {
+        if (!firstName || !lastName || !email || !password) {
+            Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+            return;
+        }
+
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            console.log('User signed up:');
             await setDoc(doc(db, "users", user.uid), {
                 email: user.email,
                 firstName,
                 lastName,
                 createdAt: new Date().toISOString(),
             });
-            const userData = fetchUserData(user.uid);
-            signup({ id: user.uid, ...userData });
+
+            signup({ 
+                id: user.uid, 
+                email: user.email,
+                firstName,
+                lastName
+            });
+            
+            router.push('/tabs/home');
         } catch (error) {
-            console.error('Error signing up:', error);
+            Alert.alert('Hata', 'Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.');
         }
     };
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-                <Text style={styles.title}>Kayıt Ol</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="İsim"
-                    placeholderTextColor="#aaa"
-                    value={firstName}
-                    onChangeText={setFirstName}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Soyisim"
-                    placeholderTextColor="#aaa"
-                    value={lastName}
-                    onChangeText={setLastName}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    placeholderTextColor="#aaa"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Şifre"
-                    placeholderTextColor="#aaa"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => handleSignUp(email, password)}
+            <SafeAreaView style={styles.container}>
+                <KeyboardAvoidingView 
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.keyboardView}
                 >
-                    <Text style={styles.buttonText}>Kayıt Ol</Text>
-                </TouchableOpacity>
-            </KeyboardAvoidingView>
+                    <View style={styles.header}>
+                        <Ionicons name="person-add-outline" size={60} color="#2196f3" />
+                        <Text style={styles.title}>Hesap Oluştur</Text>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="İsim"
+                                placeholderTextColor="#666"
+                                value={firstName}
+                                onChangeText={setFirstName}
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Soyisim"
+                                placeholderTextColor="#666"
+                                value={lastName}
+                                onChangeText={setLastName}
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Email"
+                                placeholderTextColor="#666"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Şifre"
+                                placeholderTextColor="#666"
+                                secureTextEntry
+                                value={password}
+                                onChangeText={setPassword}
+                            />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={handleSignUp}
+                        >
+                            <Text style={styles.buttonText}>Kayıt Ol</Text>
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
         </TouchableWithoutFeedback>
     );
 };
@@ -77,34 +120,69 @@ const SignUp = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         backgroundColor: '#f5f5f5',
     },
+    keyboardView: {
+        flex: 1,
+    },
+    header: {
+        alignItems: 'center',
+        paddingTop: 50,
+        paddingBottom: 20,
+    },
     title: {
-        fontSize: 24,
+        fontSize: 32,
         fontWeight: 'bold',
-        marginBottom: 20,
+        color: '#2196f3',
+        marginTop: 10,
+    },
+    inputContainer: {
+        paddingHorizontal: 20,
+    },
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        marginBottom: 15,
+        paddingHorizontal: 15,
+        height: 50,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    inputIcon: {
+        marginRight: 10,
     },
     input: {
-        width: '80%',
-        height: 40,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#aaa',
-        borderRadius: 5,
-        marginBottom: 10,
+        flex: 1,
+        color: '#333',
+        fontSize: 16,
     },
     button: {
-        width: '80%',
-        height: 40,
         backgroundColor: '#2196f3',
+        height: 50,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 5,
+        marginTop: 20,
+        shadowColor: '#2196f3',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     buttonText: {
-        color: '#fff',
+        color: 'white',
+        fontSize: 18,
         fontWeight: 'bold',
     },
 });

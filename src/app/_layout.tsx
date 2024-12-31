@@ -9,19 +9,33 @@ export default function RootLayout() {
                 <Stack>
                     <Stack.Screen name="index" options={{
                         title: 'Login',
-                        headerShown: true
+                        headerShown: false
                     }} />
                     <Stack.Screen name="signup" options={{
                         title: 'Sign Up',
-                        headerShown: true
+                        headerShown: false
                     }} />
                     <Stack.Screen name="[eventID]" options={{
                         title: 'Event Details',
-                        headerShown: true,
+                        headerShown: false,
                         presentation: 'modal',
                         animation: 'fade_from_bottom'
                     }} />
-                    <Stack.Screen name="tabs" />
+                    <Stack.Screen name="favorites" options={{
+                        title: 'Favoriler',
+                        headerShown: false,
+                        presentation: 'modal',
+                        animation: 'fade_from_bottom'
+                    }} />
+                    <Stack.Screen name="attendances" options={{
+                        title: 'Katıldığım Etkinlikler',
+                        headerShown: false,
+                        presentation: 'modal',
+                        animation: 'fade_from_bottom'
+                    }} />
+                    <Stack.Screen name="tabs" options={{
+                        headerShown: false
+                    }} />
                 </Stack>
                 <StatusBar style="auto" />
             </AuthProvider>
