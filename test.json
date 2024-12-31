@@ -1,0 +1,139 @@
+{
+    "_embedded": {
+        "attractions": [
+            [Object
+            ]
+        ],
+        "venues": [
+            [Object
+            ]
+        ]
+    },
+    "_links": {
+        "attractions": [
+            [Object
+            ]
+        ],
+        "self": {
+            "href": "/discovery/v2/events/Z1HyzZyMZ75QaAEM?locale=en-us"
+        },
+        "venues": [
+            [Object
+            ]
+        ]
+    },
+    "classifications": [
+        {
+            "family": false,
+            "genre": [Object
+            ],
+            "primary": true,
+            "segment": [Object
+            ],
+            "subGenre": [Object
+            ]
+        }
+    ],
+    "dates": {
+        "spanMultipleDays": false,
+        "start": {
+            "dateTBA": false,
+            "dateTBD": false,
+            "dateTime": "2024-12-31T16:00:00Z",
+            "localDate": "2024-12-31",
+            "localTime": "19:00:00",
+            "noSpecificTime": false,
+            "timeTBA": false
+        },
+        "status": {
+            "code": "onsale"
+        },
+        "timezone": "Europe/Istanbul"
+    },
+    "id": "Z1HyzZyMZ75QaAEM",
+    "images": [
+        {
+            "fallback": true,
+            "height": 360,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_RETINA_PORTRAIT_16_9.jpg",
+            "width": 640
+        },
+        {
+            "fallback": true,
+            "height": 225,
+            "ratio": "4_3",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_CUSTOM.jpg",
+            "width": 305
+        },
+        {
+            "fallback": true,
+            "height": 115,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_EVENT_DETAIL_PAGE_16_9.jpg",
+            "width": 205
+        },
+        {
+            "fallback": true,
+            "height": 56,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_RECOMENDATION_16_9.jpg",
+            "width": 100
+        },
+        {
+            "fallback": true,
+            "height": 639,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_RETINA_LANDSCAPE_16_9.jpg",
+            "width": 1136
+        },
+        {
+            "fallback": true,
+            "height": 576,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_TABLET_LANDSCAPE_16_9.jpg",
+            "width": 1024
+        },
+        {
+            "fallback": true,
+            "height": 1152,
+            "ratio": "16_9",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+            "width": 2048
+        },
+        {
+            "fallback": true,
+            "height": 427,
+            "ratio": "3_2",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_RETINA_PORTRAIT_3_2.jpg",
+            "width": 640
+        },
+        {
+            "fallback": true,
+            "height": 683,
+            "ratio": "3_2",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_TABLET_LANDSCAPE_3_2.jpg",
+            "width": 1024
+        },
+        {
+            "fallback": true,
+            "height": 203,
+            "ratio": "3_2",
+            "url": "https://s1.ticketm.net/dam/c/cf0/e3e32db3-adac-486f-b78d-7c8857f8bcf0_106191_ARTIST_PAGE_3_2.jpg",
+            "width": 305
+        }
+    ],
+    "locale": "en-us",
+    "name": "Hocapaşa Mevlevileri - Sema Ayini - Aralık Ayı Etkinlikleri",
+    "sales": {
+        "public": {
+            "endDateTime": "2024-12-31T16:00:00Z",
+            "startDateTime": "2024-10-08T07:43:00Z",
+            "startTBA": false,
+            "startTBD": false
+        }
+    },
+    "test": false,
+    "type": "event",
+    "url": "https://www.biletix.com/performance/3AP23/031/TURKIYE/tr"
+}

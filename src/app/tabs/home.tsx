@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
-import { View, Text } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, FlatList } from 'react-native'
 import React from 'react'
 import axios from 'axios'
+import EventCard from '../../components/EventCard'
 export default function home() {
+  const [events, setEvents] = useState([]);
   const API_KEY = 'wYGNg0lBRAw0rVYktm9HnABJrXPOWTPB';
   const BASE_URL = 'https://app.ticketmaster.com/discovery/v2/events.json';
   useEffect(() => {
@@ -10,23 +12,20 @@ export default function home() {
       try {
         const response = await axios.get(BASE_URL, {
           params: {
-            apikey: API_KEY,         // API Key query parameter
-            countryCode: 'US',       // ABD etkinliklerini filtreler
-            keyword: 'Rock'          // 'Rock' anahtar kelimesi ile arama
+            apikey: API_KEY,
+            countryCode: 'TR'
           }
         });
-        console.log(response.data);
+        setEvents(response.data._embedded.events);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
     }
-
     fetchEvents();
-
   }, [])
   return (
     <View>
-      <Text>Etkinlik Sayfası</Text>
+      <FlatList data={events} renderItem={({ item }) => <EventCard event={item} />} keyExtractor={item => item.id} />
     </View>
   )
 }

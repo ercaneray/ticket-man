@@ -19,9 +19,6 @@ const SignUp = () => {
           console.error('Error signing up:', error);
         }
       };
-      
-      
-
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>

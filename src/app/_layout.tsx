@@ -13,6 +13,12 @@ export default function RootLayout() {
                         title: 'Sign Up',
                         headerShown: true
                     }} />
+                    <Stack.Screen name="[eventID]" options={{
+                        title: 'Event Details',
+                        headerShown: true,
+                        presentation: 'modal',
+                        animation: 'fade_from_bottom'
+                    }} />
                     <Stack.Screen name="tabs" />
                 </Stack>
                 <StatusBar style="auto" />
