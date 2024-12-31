@@ -1,81 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
-import { auth, db } from '../firebaseConfig';
+import { auth } from '../firebaseConfig';
 import { useAuth } from "../contexts/AuthContext";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { fetchUserData } from '../utils/fetchUserData';
 import { Link } from 'expo-router';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const Login = () => {
     const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        webClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
-        androidClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
-        iosClientId: "839369740385-li16ni4vd50j0920g020ivotfbrlpq7f.apps.googleusercontent.com",
-        redirectUri: "https://auth.expo.io/@eryrcn/ticket-man",
-        responseType: "id_token",
-        scopes: ['openid', 'profile', 'email']
-    });
-
-    useEffect(() => {
-        if (response?.type === 'success') {
-            const { id_token } = response.params;
-            console.log("Auth response:", id_token);
-            
-            const credential = GoogleAuthProvider.credential(
-                id_token
-            );
-            
-            signInWithCredential(auth, credential)
-                .then(async (result) => {
-                    console.log("Firebase auth successful");
-                    const user = result.user;
-                    try {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-
-                        if (!userDoc.exists()) {
-                            await setDoc(doc(db, "users", user.uid), {
-                                email: user.email,
-                                firstName: user.displayName?.split(' ')[0] || '',
-                                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                                createdAt: new Date().toISOString(),
-                            });
-                        }
-
-                        const userData = userDoc.exists() ? userDoc.data() : {
-                            firstName: user.displayName?.split(' ')[0] || '',
-                            lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                        };
-
-                        login({
-                            id: user.uid,
-                            email: user.email || '',
-                            ...userData
-                        });
-
-                        router.push('/tabs/home');
-                    } catch (error) {
-                        console.error("Firestore error:", error);
-                        Alert.alert('Hata', 'Kullanıcı bilgileri kaydedilirken bir hata oluştu.');
-                    }
-                })
-                .catch((error) => {
-                    console.error("Auth error:", error);
-                    Alert.alert('Hata', 'Giriş yapılamadı');
-                });
-        }
-    }, [response]);
 
     const handleLogin = async (email: string, password: string) => {
         try {
@@ -89,16 +26,6 @@ const Login = () => {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        try {
-            const result = await promptAsync();
-            console.log("Auth result:", result);
-        } catch (error) {
-            console.error("Google login error:", error);
-            Alert.alert('Hata', 'Google ile giriş yapılırken bir hata oluştu.');
-        }
-    };
-
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <SafeAreaView style={styles.container}>
@@ -106,20 +33,6 @@ const Login = () => {
                     <Ionicons name="ticket-outline" size={60} color="#2196f3" />
                     <Text style={styles.title}>TicketMan</Text>
                     <Text style={styles.subtitle}>Etkinlik biletleri için doğru adres</Text>
-                </View>
-
-                <TouchableOpacity
-                    style={[styles.button, styles.googleButton]}
-                    onPress={handleGoogleLogin}
-                >
-                    <Ionicons name="logo-google" size={20} color="#fff" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Google ile Giriş Yap (Test)</Text>
-                </TouchableOpacity>
-
-                <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>veya</Text>
-                    <View style={styles.dividerLine} />
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -251,32 +164,6 @@ const styles = StyleSheet.create({
         color: '#2196f3',
         fontSize: 16,
         fontWeight: 'bold',
-    },
-    googleButton: {
-        backgroundColor: '#4285F4',
-        marginHorizontal: 20,
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    buttonIcon: {
-        marginRight: 10,
-    },
-    divider: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 20,
-        marginHorizontal: 20,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: '#ddd',
-    },
-    dividerText: {
-        marginHorizontal: 10,
-        color: '#666',
     },
 });
 

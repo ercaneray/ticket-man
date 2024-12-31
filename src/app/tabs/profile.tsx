@@ -6,6 +6,16 @@ import { auth, db } from '../../firebaseConfig';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, query, getDocs } from 'firebase/firestore';
+import * as Notifications from 'expo-notifications';
+
+// Bildirim ayarlarını yapılandır
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -45,6 +55,22 @@ export default function Profile() {
     getAttendanceCount();
   }, [user]);
 
+  const sendTestNotification = async () => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Bildirim Testi",
+          body: "Bildirim deneme",
+        },
+        trigger: null, // Hemen gönder
+      });
+      Alert.alert('Başarılı', 'Test bildirimi gönderildi');
+    } catch (error) {
+      console.error('Notification error:', error);
+      Alert.alert('Hata', 'Bildirim gönderilemedi');
+    }
+  };
+
   const menuItems = [
     {
       title: 'Favorilerim',
@@ -59,14 +85,14 @@ export default function Profile() {
       badge: attendanceCount
     },
     {
-      title: 'Bildirimler',
+      title: 'Bildirimlerim',
       icon: 'notifications-outline' as const,
-      onPress: () => console.log('Bildirimler'),
+      onPress: () => router.push('/notifications'),
     },
     {
       title: 'Ayarlar',
       icon: 'settings-outline' as const,
-      onPress: () => console.log('Ayarlar'),
+      onPress: () => router.push('/settings'),
     },
     {
       title: 'Çıkış Yap',
@@ -74,6 +100,15 @@ export default function Profile() {
       onPress: handleLogout,
       color: '#ff4444'
     }
+  ];
+
+  const settingsItems = [
+    {
+      title: 'Bildirim Testi',
+      icon: 'notifications-outline' as const,
+      onPress: sendTestNotification,
+    }
+    // Buraya diğer ayar seçenekleri eklenebilir
   ];
 
   return (
@@ -200,5 +235,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
-  }
+  },
+  settingsSection: {
+    marginTop: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  settingText: {
+    flex: 1,
+    marginLeft: 15,
+    fontSize: 16,
+    color: '#333',
+  },
 });

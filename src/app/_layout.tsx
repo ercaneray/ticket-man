@@ -33,8 +33,19 @@ export default function RootLayout() {
                         presentation: 'modal',
                         animation: 'fade_from_bottom'
                     }} />
+                    <Stack.Screen name="settings" options={{
+                        title: 'Ayarlar',
+                        headerShown: true,
+                        presentation: 'card',
+                    }} />
                     <Stack.Screen name="tabs" options={{
-                        headerShown: false
+                        headerShown: false,
+                        title: 'Geri'
+                    }} />
+                    <Stack.Screen name="notifications" options={{
+                        title: 'Bildirimlerim',
+                        headerShown: true,
+                        presentation: 'card'
                     }} />
                 </Stack>
                 <StatusBar style="auto" />

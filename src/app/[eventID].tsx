@@ -1,13 +1,32 @@
-import { View, Text, Platform, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Alert, Modal } from 'react-native'
+import { View, Text, Platform, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Alert, Modal, TextInput } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext'
-import { doc, setDoc, deleteDoc, getDoc, getDocs, query, where, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDoc, getDocs, query, where, collection, addDoc, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Event } from '../types/event';
+
+interface Review {
+    id: string;
+    userId: string;
+    userName: string;
+    rating: number;
+    comment: string;
+    createdAt: Timestamp;
+}
+
+interface Reminder {
+    id: string;
+    eventId: string;
+    userId: string;
+    eventName: string;
+    reminderDate: Timestamp;
+    eventDate: string;
+    imageUrl: string;
+}
 
 export default function EventDetails() {
     const { eventID } = useLocalSearchParams();
@@ -17,6 +36,10 @@ export default function EventDetails() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [isAttending, setIsAttending] = useState(false);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [newReview, setNewReview] = useState({ rating: 0, comment: '' });
+    const [averageRating, setAverageRating] = useState(0);
+    const [hasReminder, setHasReminder] = useState(false);
 
     useEffect(() => {
         const getEventDetails = async () => {
@@ -68,6 +91,46 @@ export default function EventDetails() {
         checkAttendance();
     }, [user, event]);
 
+    useEffect(() => {
+        if (!eventID) return;
+
+        const q = query(
+            collection(db, 'events', eventID.toString(), 'reviews'),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const reviewsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as Review[];
+            setReviews(reviewsData);
+
+            if (reviewsData.length > 0) {
+                const total = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+                setAverageRating(total / reviewsData.length);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [eventID]);
+
+    useEffect(() => {
+        const checkReminder = async () => {
+            if (!user || !eventID) return;
+            
+            try {
+                const reminderRef = doc(db, 'reminders', `${user.id}_${eventID}`);
+                const reminderDoc = await getDoc(reminderRef);
+                setHasReminder(reminderDoc.exists());
+            } catch (error) {
+                console.error('Error checking reminder:', error);
+            }
+        };
+
+        checkReminder();
+    }, [user, eventID]);
+
     const toggleFavorite = async () => {
         if (!user || !event) return;
 
@@ -118,6 +181,94 @@ export default function EventDetails() {
         }
     };
 
+    const handleSubmitReview = async () => {
+        if (!user) {
+            Alert.alert('Hata', 'Yorum yapmak için giriş yapmalısınız.');
+            return;
+        }
+
+        if (newReview.rating === 0) {
+            Alert.alert('Hata', 'Lütfen bir puan verin.');
+            return;
+        }
+
+        if (newReview.comment.trim().length < 3) {
+            Alert.alert('Hata', 'Lütfen en az 3 karakter uzunluğunda bir yorum yazın.');
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, 'events', eventID.toString(), 'reviews'), {
+                userId: user.id,
+                userName: `${user.firstName} ${user.lastName}`,
+                rating: newReview.rating,
+                comment: newReview.comment,
+                createdAt: Timestamp.now()
+            });
+
+            setNewReview({ rating: 0, comment: '' });
+            Alert.alert('Başarılı', 'Yorumunuz eklendi.');
+        } catch (error) {
+            console.error('Error adding review:', error);
+            Alert.alert('Hata', 'Yorum eklenirken bir hata oluştu.');
+        }
+    };
+
+    const handleSetReminder = async () => {
+        if (!user || !event) {
+            Alert.alert('Hata', 'Lütfen giriş yapın');
+            return;
+        }
+
+        try {
+            const reminderRef = doc(db, 'reminders', `${user.id}_${eventID}`);
+
+            if (hasReminder) {
+                await deleteDoc(reminderRef);
+                setHasReminder(false);
+                Alert.alert('Başarılı', 'Hatırlatıcı kaldırıldı');
+            } else {
+                const eventDate = new Date(event.dates.start.localDate);
+                const reminderDate = new Date(eventDate);
+                reminderDate.setDate(eventDate.getDate() - 1);
+
+                await setDoc(reminderRef, {
+                    eventId: eventID,
+                    userId: user.id,
+                    eventName: event.name,
+                    reminderDate: Timestamp.fromDate(reminderDate),
+                    eventDate: event.dates.start.localDate,
+                    imageUrl: event.images[0].url,
+                    createdAt: Timestamp.now()
+                });
+
+                setHasReminder(true);
+                Alert.alert('Başarılı', 'Etkinlikten 1 gün önce hatırlatılacak');
+            }
+        } catch (error) {
+            console.error('Reminder error:', error);
+            Alert.alert('Hata', 'İşlem sırasında bir hata oluştu');
+        }
+    };
+
+    const RatingStars = ({ value, onRatingChange }: { value: number, onRatingChange?: (rating: number) => void }) => (
+        <View style={styles.starsContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                    key={star}
+                    onPress={() => onRatingChange?.(star)}
+                    disabled={!onRatingChange}
+                >
+                    <Ionicons
+                        name={star <= value ? "star" : "star-outline"}
+                        size={24}
+                        color="#FFD700"
+                    />
+                </TouchableOpacity>
+            ))}
+        </View>
+    );
+
     if (loading || !event) {
         return (
             <View style={styles.loadingContainer}>
@@ -163,12 +314,26 @@ export default function EventDetails() {
     return (
         <View style={styles.container}>
             <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-            <ScrollView bounces={false}>
+            
+            <View style={styles.imageContainer}>
                 <Image 
                     source={{ uri: event.images[0].url }} 
                     style={styles.image}
                 />
                 
+                <TouchableOpacity
+                    style={styles.reminderIconButton}
+                    onPress={handleSetReminder}
+                >
+                    <Ionicons
+                        name={hasReminder ? "notifications" : "notifications-outline"}
+                        size={28}
+                        color={hasReminder ? "#2196f3" : "white"}
+                    />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView bounces={false}>
                 <View style={styles.contentContainer}>
                     <Text style={styles.title}>{event.name}</Text>
 
@@ -211,11 +376,60 @@ export default function EventDetails() {
                         </View>
                     )}
                 </View>
+
+                <View style={styles.reviewsSection}>
+                    <View style={styles.reviewsHeader}>
+                        <Text style={styles.reviewsTitle}>Yorumlar ve Değerlendirmeler</Text>
+                        <View style={styles.averageRating}>
+                            <Text style={styles.averageRatingText}>
+                                {averageRating.toFixed(1)}
+                            </Text>
+                            <RatingStars value={Math.round(averageRating)} />
+                            <Text style={styles.reviewCount}>
+                                ({reviews.length} değerlendirme)
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.newReviewContainer}>
+                        <Text style={styles.newReviewTitle}>Değerlendirmenizi Yazın</Text>
+                        <RatingStars 
+                            value={newReview.rating} 
+                            onRatingChange={(rating) => setNewReview(prev => ({ ...prev, rating }))}
+                        />
+                        <TextInput
+                            style={styles.commentInput}
+                            placeholder="Yorumunuzu yazın..."
+                            value={newReview.comment}
+                            onChangeText={(comment) => setNewReview(prev => ({ ...prev, comment }))}
+                            multiline
+                        />
+                        <TouchableOpacity
+                            style={styles.submitButton}
+                            onPress={handleSubmitReview}
+                        >
+                            <Text style={styles.submitButtonText}>Gönder</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {reviews.map(review => (
+                        <View key={review.id} style={styles.reviewItem}>
+                            <View style={styles.reviewHeader}>
+                                <Text style={styles.userName}>{review.userName}</Text>
+                                <RatingStars value={review.rating} />
+                            </View>
+                            <Text style={styles.comment}>{review.comment}</Text>
+                            <Text style={styles.date}>
+                                {review.createdAt.toDate().toLocaleDateString('tr-TR')}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
             </ScrollView>
 
             <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                    style={[styles.button, { flex: 2, marginRight: 10 }]}
+                    style={[styles.button, { flex: 2, marginRight: 10, backgroundColor: '#2196f3' }]}
                     onPress={handleBuyTicket}
                 >
                     <Text style={styles.buttonText}>Bilet Al</Text>
@@ -284,9 +498,26 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    image: {
+    imageContainer: {
+        position: 'relative',
         width: '100%',
         height: 300,
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+    },
+    reminderIconButton: {
+        position: 'absolute',
+        top: 50,  // StatusBar'ın altında
+        right: 20,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 25,
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
     },
     contentContainer: {
         padding: 20,
@@ -394,5 +625,86 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
         backgroundColor: '#ff4444',
+    },
+    reviewsSection: {
+        padding: 15,
+        backgroundColor: '#fff',
+        marginTop: 15,
+        borderRadius: 10,
+    },
+    reviewsHeader: {
+        marginBottom: 20,
+    },
+    reviewsTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    averageRating: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    averageRatingText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginRight: 10,
+    },
+    reviewCount: {
+        color: '#666',
+        marginLeft: 10,
+    },
+    starsContainer: {
+        flexDirection: 'row',
+        marginVertical: 5,
+    },
+    newReviewContainer: {
+        backgroundColor: '#f5f5f5',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    newReviewTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    commentInput: {
+        backgroundColor: '#fff',
+        borderRadius: 5,
+        padding: 10,
+        minHeight: 80,
+        marginVertical: 10,
+    },
+    submitButton: {
+        backgroundColor: '#2196f3',
+        padding: 12,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    submitButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    reviewItem: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        paddingVertical: 15,
+    },
+    reviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    userName: {
+        fontWeight: 'bold',
+    },
+    comment: {
+        marginBottom: 5,
+    },
+    date: {
+        color: '#666',
+        fontSize: 12,
     },
 });
