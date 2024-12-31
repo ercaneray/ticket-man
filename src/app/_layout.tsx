@@ -1,9 +1,11 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from "../contexts/AuthContext";
 export default function RootLayout() {
     return (
         <>
+            <AuthProvider>
                 <Stack>
                     <Stack.Screen name="index" options={{
                         title: 'Login',
@@ -22,6 +24,7 @@ export default function RootLayout() {
                     <Stack.Screen name="tabs" />
                 </Stack>
                 <StatusBar style="auto" />
+            </AuthProvider>
         </>
     );
 }

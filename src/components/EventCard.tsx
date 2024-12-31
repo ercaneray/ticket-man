@@ -2,7 +2,20 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { router } from 'expo-router';
 
-export default function EventCard({ event }) {
+interface Event {
+    id: string;
+    name: string;
+    dates: {
+        start: {
+            localDate: string;
+        };
+    };
+    images: {
+        url: string;
+    }[];
+}
+
+export default function EventCard({ event }: { event: Event }) {
     const handlePress = () => {
         const eventID = event.id;
         console.log('EventCard pressed', event.id);
@@ -22,8 +35,6 @@ export default function EventCard({ event }) {
             </View>
         </TouchableOpacity>
     )
-
-
 }
 
 const styles = StyleSheet.create({

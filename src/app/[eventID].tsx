@@ -5,7 +5,6 @@ import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 export default function EventDetails() {
-    
     const { eventID } = useLocalSearchParams();
     const [event, setEvent] = useState({});
     useEffect(() => {

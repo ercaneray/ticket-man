@@ -7,8 +7,8 @@ export default function HomeLayout() {
       screenOptions={{
         headerShown: false
       }}>
-        <Tabs.Screen name="home" options={{title: 'Home'}} />
-        <Tabs.Screen name="profile" options={{title: 'Profile'}} />
+        <Tabs.Screen name="home" options={{title: 'Ana Sayfa'}} />
+        <Tabs.Screen name="profile" options={{title: 'Profil'}} />
     </Tabs>
   )
 }
