@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback, View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { auth } from '../firebaseConfig';
 import { useAuth } from "../contexts/AuthContext";
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -27,54 +27,59 @@ const Login = () => {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <Ionicons name="ticket-outline" size={60} color="#2196f3" />
-                    <Text style={styles.title}>TicketMan</Text>
-                    <Text style={styles.subtitle}>Etkinlik biletleri için doğru adres</Text>
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <View style={styles.inputWrapper}>
-                        <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Email"
-                            placeholderTextColor="#666"
-                            value={email}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <SafeAreaView style={styles.container}>
+                    <View style={styles.header}>
+                        <Ionicons name="ticket-outline" size={60} color="#2196f3" />
+                        <Text style={styles.title}>TicketMan</Text>
+                        <Text style={styles.subtitle}>Etkinlik biletleri için doğru adres</Text>
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Şifre"
-                            placeholderTextColor="#666"
-                            secureTextEntry
-                            value={password}
-                            onChangeText={setPassword}
-                        />
-                    </View>
+                    <View style={styles.inputContainer}>
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Email"
+                                placeholderTextColor="#666"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                        </View>
 
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => handleLogin(email, password)}
-                    >
-                        <Text style={styles.buttonText}>Giriş Yap</Text>
-                    </TouchableOpacity>
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Şifre"
+                                placeholderTextColor="#666"
+                                secureTextEntry
+                                value={password}
+                                onChangeText={setPassword}
+                            />
+                        </View>
 
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Hesabın yok mu? </Text>
-                        <Link href="/signup" style={styles.linkText}>Kayıt ol</Link>
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => handleLogin(email, password)}
+                        >
+                            <Text style={styles.buttonText}>Giriş Yap</Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Hesabın yok mu? </Text>
+                            <Link href="/signup" style={styles.linkText}>Kayıt ol</Link>
+                        </View>
                     </View>
-                </View>
-            </SafeAreaView>
-        </TouchableWithoutFeedback>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 
